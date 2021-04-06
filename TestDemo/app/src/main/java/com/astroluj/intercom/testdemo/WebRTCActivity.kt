@@ -2,16 +2,16 @@ package com.astroluj.intercom.testdemo
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.astroluj.intercom.rtc.NeoRTC
-import com.astroluj.intercom.rtc.RxSignalling
+import com.astroluj.intercom.NeoRTC
+import com.astroluj.intercom.RxSignalling
 import com.astroluj.intercom_testdemo.R
 import org.json.JSONObject
 
 class WebRTCActivity : AppCompatActivity() {
     val rxSignalling: RxSignalling by lazy {
         object : RxSignalling() {
-            override fun onRxError(e: Throwable) {
-                e.printStackTrace()
+            override fun onRxError(error: Throwable) {
+                error.printStackTrace()
                 //Toast.makeText(applicationContext, e.message.toString(), Toast.LENGTH_LONG).show()
                 this.release()
                 neoRTC.release()
