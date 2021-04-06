@@ -10,23 +10,56 @@
 <h2> example<br></h2>
 <pre><code>
 /***********************************Intercom***********************************/<br>
-val nsIntercom  by lazy { NSIntercom.getInstance() }
 ...
-// intercom init
-nsIntercom.init(context)
 ...
-// 받은 포트로 인터폰 접속
-private fun intercomOn (context: Context, port: Int, remoteIp: String) {
-    // intercom connect
-    nsIntercom.setAudioSendPipeline("192.168.x.x", port, DEFAULT_INTERCOM_BITRATE)
-    nsIntercom.setAudioRecvPipeline(556, DEFAULT_INTERCOM_BITRATE)
-    nsIntercom.play()
+val rxSignalling: RxSignalling by lazy {
+    object : RxSignalling() {
+        override fun onRxError(error: Throwable) {
+            error.printStackTrace()
+            //Toast.makeText(applicationContext, e.message.toString(), Toast.LENGTH_LONG).show()
+            this.release()
+            neoRTC.release()
+        }
+
+        override fun onRxReceive(json: String) {
+            neoRTC.onSignallingReceive(json)
+        }
+
+    }
 }
-// 받은 인터폰 접속 해제
-private fun intercomOff () {
-    nsIntercom.onPause()
-    nsIntercom.onDestroy()
+val neoRTC: NeoRTC by lazy {
+    object : NeoRTC(applicationContext) {
+        override fun onError(e: Throwable?) {
+            e?.printStackTrace()
+            rxSignalling.release()
+            this.release()
+        }
+
+        override fun onPacketSignalling(jsonStr: String, partnerIP: String) {
+            rxSignalling.sendPacket(JSONObject(jsonStr), partnerIP)
+        }
+
+        override fun onConnected () {
+        }
+    }
 }
+
+override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    setContentView(R.layout.activity_webrtc)
+
+    neoRTC.isSpeakerMode = false
+    neoRTC.partnerIP = intent.getStringExtra("partnerIp")!!
+    neoRTC.start(intent.getBooleanExtra("isInitiator", false))
+    rxSignalling.startSignalling()
+}
+
+override fun onDestroy() {
+    super.onDestroy()
+    rxSignalling.release()
+    neoRTC.release()
+}
+...
 /***********************************Intercom***********************************/
 </code></pre>
 <p><p>
@@ -44,7 +77,7 @@ allprojects {
 Application build.gradle
 <code><pre>
 dependencies {
-	implementation 'com.github.astroluj:Android_RTC_NSIntercom:1.1.13'
+	implementation 'com.github.astroluj:Android_RTC_NSIntercom:1.1.1'
 }
 </pre></code>
 
