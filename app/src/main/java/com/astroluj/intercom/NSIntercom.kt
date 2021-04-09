@@ -10,7 +10,7 @@ import org.webrtc.*
 import org.webrtc.SessionDescription.Type.ANSWER
 import org.webrtc.SessionDescription.Type.OFFER
 
-abstract class NeoRTC (private val context: Context) {
+abstract class NSIntercom (private val context: Context) {
 
     companion object {
         const val KEY_ANSWER = "answer"
