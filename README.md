@@ -87,6 +87,10 @@ dependencies {
   <a href="http://www.apache.org/licenses/LICENSE-2.0">
       Apache 2.0 License
   </a>
+	
+<a href="https://opensource.org/licenses/BSD-3-Clause">
+	BSD 3-Clause License
+  </a>
 </p>
 
 
