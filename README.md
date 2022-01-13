@@ -67,18 +67,17 @@ override fun onDestroy() {
 <h2>Dependency<br></h2>
 Project build.gradle
 <code><pre>
-allprojects {
-    repositories {
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/astroluj/Android_RTC_NSIntercom")
-            credentials {
-                username = "astroluj"
-                password = "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"
-            }
+repositories {
+    maven {
+        name = "GitHubPackages"
+        url = uri("https://maven.pkg.github.com/astroluj/Android_RTC_NSIntercom")
+        credentials {
+            username = "astroluj"
+            password = "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"
         }
     }
 }
+
 </pre></code>
 Application build.gradle
 <code><pre>
