@@ -84,7 +84,7 @@ repositories {
 Application build.gradle
 <code><pre>
 dependencies {
-	implementation 'com.github.astroluj:Android_RTC_NSIntercom:1.2.3'
+	implementation 'com.github.astroluj:android_rtc_nsintercom:1.2.3'
 }
 </pre></code>
 
