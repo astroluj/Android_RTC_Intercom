@@ -73,7 +73,7 @@ repositories {
         url = uri("https://maven.pkg.github.com/astroluj/Android_RTC_NSIntercom")
         credentials {
             username = "astroluj"
-            password = "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"
+            password = "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"
         }
     }
 }
