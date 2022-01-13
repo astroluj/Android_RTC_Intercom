@@ -323,6 +323,9 @@ Thumbs.db
 .cproject
 .settings/
 
+# dev info
+developer.properties
+
 # Mobile Tools for Java (J2ME)
 
 # Package Files #
