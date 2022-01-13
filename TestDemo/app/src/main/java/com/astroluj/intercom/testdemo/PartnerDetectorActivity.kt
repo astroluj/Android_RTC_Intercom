@@ -25,7 +25,6 @@ class PartnerDetectorActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_signalling)
 
-        NSIntercom.getInstance()
         phoneA.setOnClickListener {
             it.isEnabled = false
             isInitiator = true

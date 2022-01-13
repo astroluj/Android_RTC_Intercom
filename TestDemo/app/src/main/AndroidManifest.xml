@@ -3,17 +3,18 @@
     package="com.astroluj.intercom_testdemo">
 
     <application
-        android:supportsRtl="true"
         android:allowBackup="true"
         android:fullBackupContent="false"
-        android:label="@string/application_name"
         android:icon="@android:mipmap/sym_def_app_icon"
+        android:label="@string/application_name"
+        android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.DarkActionBar">
 
         <activity
             android:name="com.astroluj.intercom.testdemo.PermissionActivity"
-            android:screenOrientation="portrait"
+            android:exported="true"
             android:noHistory="true"
+            android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.Light.DarkActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -30,12 +31,14 @@
 
         <activity
             android:name="com.astroluj.intercom.testdemo.PartnerDetectorActivity"
-            android:screenOrientation="portrait"
+            android:exported="false"
             android:noHistory="true"
+            android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.Light.DarkActionBar" />
 
         <activity
             android:name="com.astroluj.intercom.testdemo.WebRTCActivity"
+            android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.Light.DarkActionBar" />
 
