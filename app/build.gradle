@@ -3,7 +3,7 @@ apply plugin: 'kotlin-android'
 apply plugin: 'org.jetbrains.dokka-android'
 // jcenter
 // apply plugin: 'com.github.dcendents.android-maven'
-// group = 'com.github.astroluj'
+group = 'com.github.astroluj'
 // mavenCentral
 // apply from: file('publish.gradle')
 apply plugin: 'maven-publish'
