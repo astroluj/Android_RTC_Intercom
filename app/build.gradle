@@ -14,7 +14,7 @@ afterEvaluate {
                 from components.release
 
                 groupId = 'com.astroluj.intercom'
-                artifactId = 'Android_RTC_NSIntercom'
+                artifactId = 'android_rtc_nsintercom'
                 version = '1.2.7'
             }
         }
