@@ -10,12 +10,21 @@ apply plugin: 'maven-publish'
 afterEvaluate {
     publishing {
         publications {
-            mavenJava(MavenPublication) {
+            paidRelease(MavenPublication) {
                 from components.release
 
                 groupId = 'com.astroluj.intercom'
                 artifactId = 'android_rtc_nsintercom'
-                version = '1.2.9'
+                version = '1.2.10'
+            }
+            paidDebug(MavenPublication) {
+                // The following applies a component to this publication
+                // which results in publishing APKs in a ZIP file.
+                from components.debug
+
+                groupId = 'com.astroluj.intercom'
+                artifactId = 'android_rtc_nsintercom-debug'
+                version = '1.2.10'
             }
         }
     }
