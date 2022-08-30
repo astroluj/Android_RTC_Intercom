@@ -13,7 +13,7 @@ afterEvaluate {
             mavenJava(MavenPublication) {
                 from components.release
 
-                groupId = 'com.github.astroluj'
+                groupId = 'com.astroluj.intercom'
                 artifactId = 'Android_RTC_NSIntercom'
                 version = '1.2.6'
             }
