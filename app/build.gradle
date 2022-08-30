@@ -5,7 +5,8 @@ apply plugin: 'org.jetbrains.dokka-android'
 // apply plugin: 'com.github.dcendents.android-maven'
 // group = 'com.github.astroluj'
 // mavenCentral
-apply from: file('publish.gradle')
+// apply from: file('publish.gradle')
+apply plugin: 'maven-publish'
 
 android {
     compileSdkVersion 31
