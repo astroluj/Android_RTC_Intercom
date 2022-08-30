@@ -3,10 +3,23 @@ apply plugin: 'kotlin-android'
 apply plugin: 'org.jetbrains.dokka-android'
 // jcenter
 // apply plugin: 'com.github.dcendents.android-maven'
-group = 'com.github.astroluj'
+// group = 'com.github.astroluj'
 // mavenCentral
 // apply from: file('publish.gradle')
 apply plugin: 'maven-publish'
+afterEvaluate {
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.release
+
+                groupId = 'com.github.astroluj'
+                artifactId = 'Android_RTC_NSIntercom'
+                version = '1.2.6'
+            }
+        }
+    }
+}
 
 android {
     compileSdkVersion 31
