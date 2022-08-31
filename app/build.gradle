@@ -65,7 +65,7 @@ android {
 
     // Jni Setting
     sourceSets.main {
-        jni.srcDirs = ['libs']
+        jni.srcDirs = ['libs/']
         jniLibs.srcDirs = ['src/main/jniLibs']
     }
 
@@ -90,6 +90,11 @@ task sourcesJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
     archiveClassifier.set('sources')
 }
+
+artifacts {
+    archives sourcesJar
+}
+
 // Make document
 tasks.dokka {
     moduleName = 'RTC_NSIntercom'
