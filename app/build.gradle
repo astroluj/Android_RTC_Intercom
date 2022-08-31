@@ -64,10 +64,10 @@ android {
     }
 
     // Jni Setting
-    sourceSets.main {
+    /*sourceSets.main {
         jni.srcDirs = []
         jniLibs.srcDirs = ['src/main/jniLibs']
-    }
+    }*/
 
     buildTypes {
         release {
