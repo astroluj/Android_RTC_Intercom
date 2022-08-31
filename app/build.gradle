@@ -65,7 +65,7 @@ android {
 
     // Jni Setting
     sourceSets.main {
-        jni.srcDirs = ['libs/']
+        jni.srcDirs = []
         jniLibs.srcDirs = ['src/main/jniLibs']
     }
 
@@ -86,15 +86,6 @@ android {
     }
 }
 
-task sourcesJar(type: Jar) {
-    from android.sourceSets.main.java.srcDirs
-    archiveClassifier.set('sources')
-}
-
-artifacts {
-    archives sourcesJar
-}
-
 // Make document
 tasks.dokka {
     moduleName = 'RTC_NSIntercom'
@@ -110,7 +101,7 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.5.0'
     implementation "io.reactivex.rxjava2:rxandroid:2.1.1"
     implementation 'androidx.core:core-ktx:1.8.0'
-    implementation files('libs/google-webrtc-1.0.32006.jar')
+
 }
 
 afterEvaluate {
@@ -123,7 +114,6 @@ afterEvaluate {
 
                 // You can then customize attributes of the publication as shown below.
                 groupId = 'com.github.astroluj'
-                artifact(sourcesJar)
                 artifactId = 'Android_RTC_NSIntercom'
                 version = '1.2.12'
             }
