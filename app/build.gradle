@@ -115,7 +115,7 @@ afterEvaluate {
                 // You can then customize attributes of the publication as shown below.
                 groupId = 'com.github.astroluj'
                 artifactId = 'Android_RTC_NSIntercom'
-                version = '1.2.11'
+                version = '1.2.12'
             }
         }
     }
