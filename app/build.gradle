@@ -10,22 +10,14 @@ group = 'com.github.astroluj'*/
 group = 'com.github.astroluj'
 
 android {
-    compileSdkVersion 33
-    buildToolsVersion "30.0.3"
+    compileSdkVersion 32
 
     //File 불러오기
     def versionPropsFile = file('version.properties')
 
-    def artifactName = "Android_RTC_NSIntercom"
-    def versionMajor = 0
-    def versionMinor = 0
-    def versionPatch = 0
-    def versionNumber = 0
-    def versionBuild = 0
-
     //File Read 여부 체크
     if (versionPropsFile.canRead()) {
-        def versionProps = new Properties()
+        def Properties versionProps = new Properties()
 
         versionProps.load(new FileInputStream(versionPropsFile))
 
@@ -36,13 +28,12 @@ android {
             value = 1
         }
 
-        // version info.
-        versionMajor = versionProps['VERSION_MAJOR'].toInteger()
-        versionMinor = versionProps['VERSION_MINOR'].toInteger()
-        versionPatch = versionProps['VERSION_PATCH'].toInteger() + value
-        versionNumber = versionProps['VERSION_NUMBER'].toInteger() + value
+        def versionMajor = versionProps['VERSION_MAJOR'].toInteger()
+        def versionMinor = versionProps['VERSION_MINOR'].toInteger()
+        def versionPatch = versionProps['VERSION_PATCH'].toInteger() + value
+        def versionNumber = versionProps['VERSION_NUMBER'].toInteger() + value
         //Build 정보는 Debug, Release 상관없이 빌드하면 무조건 Count up
-        versionBuild = versionProps['VERSION_BUILD'].toInteger() + 1
+        def versionBuild = versionProps['VERSION_BUILD'].toInteger() + 1
 
         versionProps['VERSION_PATCH'] = versionPatch.toString()
         versionProps['VERSION_BUILD'] = versionBuild.toString()
@@ -52,13 +43,11 @@ android {
         versionProps.store(versionPropsFile.newWriter(), null)
         defaultConfig {
             minSdkVersion 19
-            targetSdkVersion 33
+            targetSdkVersion 32
             versionCode versionNumber
             versionName "${versionMajor}.${versionMinor}.${versionPatch}_Release"
-            archivesBaseName = artifactName
+            archivesBaseName = "Android_RTC_Intercom"
         }
-
-        android.libraryVariants.all { variant -> variant.outputs.all { output -> outputFileName = "${archivesBaseName}-${android.defaultConfig.versionName}.aar" } }
     } else {
         throw new Exception("Could not read version.properties!")
     }
@@ -72,23 +61,30 @@ android {
     buildTypes {
         release {
             minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+    }
 
-        kotlinOptions {
-            jvmTarget = "1.8"
-        }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+}
+
+// output file name fixed
+android.libraryVariants.all { variant ->
+    variant.outputs.all {
+        outputFileName = "${archivesBaseName}-${android.defaultConfig.versionName}.aar"
     }
 }
 
 // Make document
 tasks.dokka {
-    moduleName = 'RTC_NSIntercom'
+    moduleName = 'RTC_Intercom'
     outputFormat = 'html'
     outputDirectory = "$buildDir/docs"
     sourceDirs = files('src/main/java')
@@ -97,14 +93,12 @@ tasks.dokka {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation 'androidx.appcompat:appcompat:1.5.0'
+    implementation 'androidx.core:core-ktx:1.12.0'
     implementation "io.reactivex.rxjava2:rxandroid:2.1.1"
-    implementation 'androidx.core:core-ktx:1.8.0'
-
+    implementation files('libs/google-webrtc-1.0.32006.jar')
 }
 
-afterEvaluate {
+/*afterEvaluate {
     publishing {
         publications {
             // Creates a Maven publication called "release".
@@ -119,4 +113,4 @@ afterEvaluate {
             }
         }
     }
-}
+}*/

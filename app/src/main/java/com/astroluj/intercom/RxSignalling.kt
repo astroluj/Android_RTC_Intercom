@@ -21,7 +21,7 @@ abstract class RxSignalling {
     private val disposables by lazy { CompositeDisposable() }
 
     // 시그날링으로 주고 받을 데이터를 받을 서버 생성
-    fun startSignalling(myPort: Int = 50001) {
+    fun startSignalling(myPort: Int) {
         val observable = Observable.create<String> { emitter ->
             // 서버를 생성
             ServerSocket().use { serverSocket ->
@@ -46,16 +46,16 @@ abstract class RxSignalling {
         }
 
         val disposable = observable
-                // 내부 스케줄러
-                .subscribeOn(Schedulers.io())
-                // ui 스케줄러
-                .observeOn(AndroidSchedulers.mainThread())
-                // 구독 결과
-                .subscribe(this::onRxReceive, this::onRxError)
+            // 내부 스케줄러
+            .subscribeOn(Schedulers.io())
+            // ui 스케줄러
+            .observeOn(AndroidSchedulers.mainThread())
+            // 구독 결과
+            .subscribe(this::onRxReceive, this::onRxError)
         disposables.add(disposable)
     }
 
-    fun sendPacket(packet: JSONObject, partnerIP: String, partnerPort: Int = 50001) {
+    fun sendPacket(packet: JSONObject, partnerIP: String, partnerPort: Int) {
         val action = Completable.fromAction {
             Socket().use {
                 it.soTimeout = socketTimeOut
@@ -65,9 +65,9 @@ abstract class RxSignalling {
         }
 
         val disposable = action.retry { error -> error is ConnectException }
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({}, this::onRxError)
+            .subscribeOn(Schedulers.newThread())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({}, this::onRxError)
         disposables.add(disposable)
     }
 

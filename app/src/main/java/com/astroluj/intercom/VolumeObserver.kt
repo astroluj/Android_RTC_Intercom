@@ -14,7 +14,7 @@ import org.webrtc.voiceengine.WebRtcAudioTrack
  * internal class
  * 내부에서 쓰이는 볼륨 이벤트 클래스
  */
-internal class VolumeObserver (private val context: Context,
+class VolumeObserver (private val context: Context,
                                private val handler: Handler,
                                private val limitVolumeRate: Float,
                                private val isSpeakerMode: Boolean = false,

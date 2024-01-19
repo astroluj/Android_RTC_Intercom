@@ -21,6 +21,22 @@
 #-renamesourcefileattribute SourceFile
 -keep public class com.astroluj.** { public protected *; }
 -keep public interface com.astroluj.** { public protected *; }
+-keep public class org.webrtc.** { public protected *; }
+-keep public interface org.webrtc.** { public protected *; }
+
+# inner class
+-keep class com.astroluj.** { public protected * ; }
+-keep interface com.astroluj.** { public protected * ; }
+-keepclassmembernames class com.astroluj.** { public protected <fields> ; }
+-keep class org.webrtc.** { * ; }
+-keep interface org.webrtc.** { * ; }
+-keepclassmembernames class org.webrtc.** { * ; }
+
+# JNI methods
+-keepclassmembers public class org.webrtc.** { public protected private native <methods>; }
+# Static
+-keepclassmembers public class com.astroluj.** { public protected private static <fields> ; public static <methods>; }
+-keepclassmembers public class org.webrtc.** { public protected private static <fields> ; public static <methods>; }
 
 -dontwarn org.**
 -dontwarn junit.**

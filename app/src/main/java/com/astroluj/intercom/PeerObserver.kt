@@ -2,7 +2,7 @@ package com.astroluj.intercom
 
 import org.webrtc.*
 
-internal open class PeerObserver: PeerConnection.Observer {
+open class PeerObserver: PeerConnection.Observer {
     override fun onIceCandidate(iceCandidate: IceCandidate) {}
     override fun onDataChannel(dataChannel: DataChannel) {}
     override fun onIceConnectionReceivingChange(receivingChange: Boolean) {}

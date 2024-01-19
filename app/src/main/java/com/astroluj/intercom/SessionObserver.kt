@@ -3,7 +3,7 @@ package com.astroluj.intercom
 import org.webrtc.SdpObserver
 import org.webrtc.SessionDescription
 
-internal open class SessionObserver: SdpObserver {
+open class SessionObserver: SdpObserver {
     override fun onCreateSuccess(sessionDescription: SessionDescription) {}
     override fun onSetSuccess() {}
     override fun onCreateFailure(description: String) {}
