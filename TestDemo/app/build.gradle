@@ -29,5 +29,5 @@ dependencies {
     // 카메라 컨트롤
     implementation project(path: ":CameraManager")
     // WebRTC
-    implementation "com.github.astroluj:Android_RTC_Intercom:1.3.2"
+    implementation "com.github.astroluj:Android_RTC_Intercom:1.3.3"
 }

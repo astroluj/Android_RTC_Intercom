@@ -2,9 +2,6 @@ plugins {
     id 'com.android.library'
     id 'kotlin-android'
     id 'org.jetbrains.dokka-android'
-/*apply plugin: 'com.github.dcendents.android-maven'
-group = 'com.github.astroluj'*/
-// apply from: file('publish.gradle')
     id 'maven-publish'
 }
 group = 'com.github.astroluj'
@@ -98,7 +95,7 @@ dependencies {
     implementation files('libs/google-webrtc-1.0.32006.jar')
 }
 
-/*afterEvaluate {
+afterEvaluate {
     publishing {
         publications {
             // Creates a Maven publication called "release".
@@ -108,9 +105,9 @@ dependencies {
 
                 // You can then customize attributes of the publication as shown below.
                 groupId = 'com.github.astroluj'
-                artifactId = 'Android_RTC_NSIntercom'
-                version = '1.2.12'
+                artifactId = 'Android_RTC_Intercom'
+                version = '1.3.3'
             }
         }
     }
-}*/
+}
