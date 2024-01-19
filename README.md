@@ -12,52 +12,86 @@
 /***********************************Intercom***********************************/<br>
 ...
 ...
-val rxSignalling: RxSignalling by lazy {
+
+// rtp communication signalling 
+// 기본으로 제공하는 signalling 서버 사용시
+// implementation "io.reactivex.rxjava2:rxandroid:version"
+private val rxSignalling: RxSignalling by lazy {
     object : RxSignalling() {
+        override fun onRxReceive(json: String) {
+            // 데이터 교환
+            rtcIntercom.onSignallingReceive(json)
+        }
+        
         override fun onRxError(error: Throwable) {
             error.printStackTrace()
-            //Toast.makeText(applicationContext, e.message.toString(), Toast.LENGTH_LONG).show()
             this.release()
-            neoRTC.release()
+            rtcIntercom.onError(error)
         }
-
-        override fun onRxReceive(json: String) {
-            neoRTC.onSignallingReceive(json)
-        }
-
     }
 }
-val neoRTC: NeoRTC by lazy {
-    object : NeoRTC(applicationContext) {
-        override fun onError(e: Throwable?) {
-            e?.printStackTrace()
+
+private val rtcIntercom: RTCIntercom by lazy {
+    object: RTCIntercom(applicationContext) {
+        override fun onConnected(partnerIP: String, partnerPort: Int) {
+            // signalling 종료
             rxSignalling.release()
+        }
+        
+        override fun onDisconnected(partnerIP: String, partnerPort: Int) {
+        }
+        
+        override fun onError(e: Throwable?) {
             this.release()
+            rxSignalling.release()
         }
-
-        override fun onPacketSignalling(jsonStr: String, partnerIP: String) {
-            rxSignalling.sendPacket(JSONObject(jsonStr), partnerIP)
-        }
-
-        override fun onConnected () {
+        
+        override fun onPacketSignalling(jsonStr: String, partnerIP: String, partnerPort: Int) {
+            // signalling 교환 요청
+            rxSignalling.sendPacket(JSONObject(jsonStr), partnerIP, partnerPort)
         }
     }
 }
 
 override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    setContentView(R.layout.activity_webrtc)
+    ...
 
-    neoRTC.isSpeakerMode = false
-    neoRTC.partnerIP = intent.getStringExtra("partnerIp")!!
-    neoRTC.start(intent.getBooleanExtra("isInitiator", false))
-    rxSignalling.startSignalling()
+    rtcIntercom.isSpeakerMode = false
+    rtcIntercom.limitVolumeRate = 0 ~ 1f
+    rtcIntercom.streamType = AudioManager.STREAM_VOICE_CALL
+    rtcIntercom.partnerIP = intent.getStringExtra("partnerIp")!!
+    rtcIntercom.isSpeakerMode = false
+    rtcIntercom.partnerIP = DefaultIp
+    rtcIntercom.partnerPort = DefaultPort
+    rtcIntercom.isRunning
+    ...
 }
+
+    Running
+    ...
+    rtcIntercom.start(
+        // 발신자 여부 true or false,
+        isUsedVideo = true or false, 
+        isUsedAudio = false or false,
+        googleStunServer = "" or google stun server url,
+        customTurnServerURL = "" or url,
+        customTurnServerID = "" or user name,
+        customTurnServerPW = "" or password,
+        localView = localLayout(org.webrtc.SurfaceViewRenderer) or null,
+        remoteView = remoteLayout(org.webrtc.SurfaceViewRenderer) or null)
+    rxSignalling.startSignalling(rtcIntercom.myPort)
+
+    // WebRTC에서 제공하는 Rendering을 사용하지 않고 custom frame 전송
+    rtcIntercom.onUpdateFrame(NV21 byte array data, width, height)
+    ...
 
 override fun onDestroy() {
     super.onDestroy()
+    ...
+    rtcIntercom.release()
     rxSignalling.release()
-    neoRTC.release()
+    ...
 }
 ...
 /***********************************Intercom***********************************/
@@ -75,7 +109,7 @@ repositories {
 Application build.gradle
 <code><pre>
 dependencies {
-	implementation 'com.github.astroluj:android_rtc_nsintercom:1.2.4'
+	implementation 'com.github.astroluj:android_rtc_intercom:1.3.1'
 }
 </pre></code>
 
