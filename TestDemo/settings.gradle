@@ -1,2 +1,2 @@
-include ':app'
+include ':app', 'RTC_Intercom', 'CameraManager'
 rootProject.name = "TestDemo"

@@ -1,22 +1,12 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
-    ext.kotlin_version = "1.6.10"
+    ext.kotlin_version = '1.6.21'
     repositories {
         google()
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/astroluj/Android_RTC_NSIntercom")
-            credentials {
-                username = "astroluj"
-                password = "ghp_akUBZp" +
-                        "JUgYbhaf0Hr5V3K" +
-                        "OcuHySPVD4GhlAV"
-            }
-        }
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.0.4'
+        classpath 'com.android.tools.build:gradle:7.4.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
 
         // NOTE: Do not place your application dependencies here; they belong
@@ -27,17 +17,7 @@ buildscript {
 allprojects {
     repositories {
         google()
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/astroluj/Android_RTC_NSIntercom")
-            credentials {
-                username = "astroluj"
-                password = "ghp_akUBZp" +
-                        "JUgYbhaf0Hr5V3K" +
-                        "OcuHySPVD4GhlAV"
-            }
-        }
-
+        maven { url 'https://jitpack.io' }
         mavenCentral()
     }
 }

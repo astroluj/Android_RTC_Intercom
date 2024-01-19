@@ -9,7 +9,6 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
-import com.astroluj.intercom.NSIntercom
 import com.astroluj.intercom_testdemo.R
 import java.util.*
 
@@ -43,6 +42,7 @@ class PartnerDetectorActivity : AppCompatActivity() {
         permissions: Array<String?>,
         grantResults: IntArray
     ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {
             15 -> {
                 var success = 0
