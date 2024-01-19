@@ -3,7 +3,6 @@ buildscript {
     ext {
 
         agp_version1 = '7.2.2'
-        agp_version = '8.1.4'
     }
     ext.kotlin_version = "1.7.10"
     repositories {
