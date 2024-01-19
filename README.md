@@ -109,7 +109,7 @@ repositories {
 Application build.gradle
 <code><pre>
 dependencies {
-	implementation 'com.github.astroluj:android_rtc_intercom:1.3.1'
+	implementation 'com.github.astroluj:android_rtc_intercom:1.3.2'
 }
 </pre></code>
 
