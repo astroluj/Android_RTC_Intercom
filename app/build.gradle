@@ -107,7 +107,7 @@ afterEvaluate {
                 // You can then customize attributes of the publication as shown below.
                 groupId = 'com.github.astroluj'
                 artifactId = 'Android_RTC_Intercom'
-                version = '${versionMajor}.${versionMinor}.${versionPatch}'
+                version = '1.3.6'
             }
         }
     }
