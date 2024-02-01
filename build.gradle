@@ -1,15 +1,15 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
     ext {
-        agp_version1 = '8.1.4'
+        agp_version = '8.0.0'
+        kotlin_version = "1.9.10"
     }
-    ext.kotlin_version = "1.9.10"
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath "com.android.tools.build:gradle:$agp_version1"
+        classpath "com.android.tools.build:gradle:$agp_version"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jetbrains.dokka:dokka-android-gradle-plugin:0.9.18"
         classpath 'com.github.dcendents:android-maven-gradle-plugin:2.1'
