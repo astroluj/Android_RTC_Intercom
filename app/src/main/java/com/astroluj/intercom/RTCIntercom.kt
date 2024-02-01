@@ -93,7 +93,7 @@ abstract class RTCIntercom (private val context: Context, private val fps: Int =
                 peerConnection?.setLocalDescription(this, sessionDescription)
 
                 // 파트너와 주고받을 데이터
-                val packet = JSONObject(sessionDescription.description).put(KEY_TYPE, SessionDescription.Type.ANSWER.name)
+                val packet = JSONObject(sessionDescription.description).put(KEY_TYPE, SessionDescription.Type.ANSWER.canonicalForm())
 
                 // 파트너에게 전송
                 onPacketSignalling(packet.toString(), partnerIP, partnerPort)
@@ -109,7 +109,7 @@ abstract class RTCIntercom (private val context: Context, private val fps: Int =
                 iceCandidatePacket.put(KEY_OFFER_SDP, iceCandidate.sdp)
                 iceCandidatePacket.put(KEY_OFFER_SDP_INDEX, iceCandidate.sdpMLineIndex)
                 iceCandidatePacket.put(KEY_OFFER_SDP_MID, iceCandidate.sdpMid)
-                iceCandidatePacket.put(KEY_TYPE, SessionDescription.Type.OFFER.name)
+                iceCandidatePacket.put(KEY_TYPE, SessionDescription.Type.OFFER.canonicalForm())
 
                 // 파트너에게 전송
                 onPacketSignalling(iceCandidatePacket.toString(), partnerIP, partnerPort)
@@ -221,7 +221,7 @@ abstract class RTCIntercom (private val context: Context, private val fps: Int =
         try {
             val packet = JSONObject(json)
 
-            if (!packet.isNull(SessionDescription.Type.ANSWER.name)) {
+            if (!packet.isNull(SessionDescription.Type.ANSWER.canonicalForm())) {
                 // 발신자로부터 통신 시작데이터를 받으면 통신 시작
                if (!isSender) startWebRTC()
 
@@ -230,7 +230,7 @@ abstract class RTCIntercom (private val context: Context, private val fps: Int =
                     it.setRemoteDescription(this.sessionObserver, SessionDescription((if (this.isSender) SessionDescription.Type.ANSWER else SessionDescription.Type.OFFER), packet.toString()))
                     it.createAnswer(this.sessionObserver, MediaConstraints())
                 }
-            } else if (!packet.isNull(SessionDescription.Type.OFFER.name)) {
+            } else if (!packet.isNull(SessionDescription.Type.OFFER.canonicalForm())) {
                 val sdp = try { packet.getString(KEY_OFFER_SDP) } catch (e: JSONException) { "" }
                 val sdpMLineIndex = try { packet.getInt(KEY_OFFER_SDP_INDEX) } catch (e: JSONException) { 0 }
                 val sdpMid = try{ packet.getString(KEY_OFFER_SDP_MID) } catch (e: JSONException) { "" }
