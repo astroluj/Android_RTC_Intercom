@@ -7,7 +7,7 @@ import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
 import com.astroluj.intercom.RTCIntercom
 import com.astroluj.intercom.RxSignalling
-import com.astroluj.intercom_testdemo.R
+import com.astroluj.intercom.testdemo.R
 import com.neosecu.cameramanager.preview.CameraTexture
 import com.neosecu.cameramanager.util.CameraUtils
 import org.json.JSONObject
@@ -21,6 +21,7 @@ class WebRTCActivity : AppCompatActivity() {
     private val rxSignalling: RxSignalling by lazy {
         object : RxSignalling() {
             override fun onRxReceive(json: String) {
+                Log.d ("AAAAAAA", "recv : $json")
                 rtcIntercom.onSignallingReceive(json)
             }
 
@@ -50,6 +51,7 @@ class WebRTCActivity : AppCompatActivity() {
             }
 
             override fun onPacketSignalling(jsonStr: String, partnerIP: String, partnerPort: Int) {
+                Log.d ("AAAAAAA", "send : $jsonStr")
                 rxSignalling.sendPacket(JSONObject(jsonStr), partnerIP, partnerPort)
             }
         }

@@ -7,7 +7,7 @@ plugins {
 group = 'com.github.astroluj'
 
 android {
-    compileSdkVersion 32
+    compileSdkVersion 34
 
     //File 불러오기
     def versionPropsFile = file('version.properties')
@@ -39,8 +39,9 @@ android {
         //update 된 설정값들을 다시 version.properties 파일에 쓰기
         versionProps.store(versionPropsFile.newWriter(), null)
         defaultConfig {
+            namespace "com.astroluj.intercom"
             minSdkVersion 19
-            targetSdkVersion 32
+            targetSdkVersion 34
             versionCode versionNumber
             versionName "${versionMajor}.${versionMinor}.${versionPatch}_Release"
             archivesBaseName = "Android_RTC_Intercom"

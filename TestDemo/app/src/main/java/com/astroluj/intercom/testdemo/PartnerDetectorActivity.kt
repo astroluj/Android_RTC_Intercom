@@ -9,7 +9,7 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
-import com.astroluj.intercom_testdemo.R
+import com.astroluj.intercom.testdemo.R
 import java.util.*
 
 class PartnerDetectorActivity : AppCompatActivity() {

@@ -9,7 +9,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.astroluj.intercom_testdemo.R
+import com.astroluj.intercom.testdemo.R
 
 class PermissionActivity : AppCompatActivity() {
 
