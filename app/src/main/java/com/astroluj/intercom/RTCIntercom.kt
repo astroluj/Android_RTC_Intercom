@@ -30,6 +30,8 @@ abstract class RTCIntercom (private val context: Context, private val fps: Int =
 
     companion object {
         const val KEY_TYPE = "type"
+        const val KEY_OFFER = "offer"
+        const val KEY_ANSWER = "answer"
         const val KEY_OFFER_SDP = "sdp"
         const val KEY_OFFER_SDP_INDEX = "sdpMLineIndex"
         const val KEY_OFFER_SDP_MID = "sdpMid"
@@ -93,7 +95,7 @@ abstract class RTCIntercom (private val context: Context, private val fps: Int =
                 peerConnection?.setLocalDescription(this, sessionDescription)
 
                 // 파트너와 주고받을 데이터
-                val packet = JSONObject(sessionDescription.description).put(KEY_TYPE, SessionDescription.Type.ANSWER.canonicalForm())
+                val packet = JSONObject().put(SessionDescription.Type.ANSWER.canonicalForm(), sessionDescription.description)
 
                 // 파트너에게 전송
                 onPacketSignalling(packet.toString(), partnerIP, partnerPort)
@@ -112,7 +114,8 @@ abstract class RTCIntercom (private val context: Context, private val fps: Int =
                 iceCandidatePacket.put(KEY_TYPE, SessionDescription.Type.OFFER.canonicalForm())
 
                 // 파트너에게 전송
-                onPacketSignalling(iceCandidatePacket.toString(), partnerIP, partnerPort)
+                val packet = JSONObject().put(SessionDescription.Type.OFFER.canonicalForm(), iceCandidatePacket).toString()
+                onPacketSignalling(packet, partnerIP, partnerPort)
             }
 
             override fun onIceConnectionChange(state: PeerConnection.IceConnectionState) {
@@ -225,15 +228,18 @@ abstract class RTCIntercom (private val context: Context, private val fps: Int =
                 // 발신자로부터 통신 시작데이터를 받으면 통신 시작
                if (!isSender) startWebRTC()
 
+                val description = packet.getString(SessionDescription.Type.ANSWER.canonicalForm())
                 peerConnection?.let {
                     // 발신자면 answer 수신자면 offer
-                    it.setRemoteDescription(this.sessionObserver, SessionDescription((if (this.isSender) SessionDescription.Type.ANSWER else SessionDescription.Type.OFFER), packet.toString()))
+                    it.setRemoteDescription(this.sessionObserver, SessionDescription((if (this.isSender) SessionDescription.Type.ANSWER else SessionDescription.Type.OFFER), description))
                     it.createAnswer(this.sessionObserver, MediaConstraints())
                 }
             } else if (!packet.isNull(SessionDescription.Type.OFFER.canonicalForm())) {
-                val sdp = try { packet.getString(KEY_OFFER_SDP) } catch (e: JSONException) { "" }
-                val sdpMLineIndex = try { packet.getInt(KEY_OFFER_SDP_INDEX) } catch (e: JSONException) { 0 }
-                val sdpMid = try{ packet.getString(KEY_OFFER_SDP_MID) } catch (e: JSONException) { "" }
+                val iceCandidateJson = packet.getJSONObject(SessionDescription.Type.OFFER.canonicalForm())
+
+                val sdp = try { iceCandidateJson.getString(KEY_OFFER_SDP) } catch (e: JSONException) { "" }
+                val sdpMLineIndex = try { iceCandidateJson.getInt(KEY_OFFER_SDP_INDEX) } catch (e: JSONException) { 0 }
+                val sdpMid = try{ iceCandidateJson.getString(KEY_OFFER_SDP_MID) } catch (e: JSONException) { "" }
 
                 val iceCandidate = IceCandidate(sdpMid, sdpMLineIndex, sdp)
                 peerConnection?.addIceCandidate(iceCandidate)
