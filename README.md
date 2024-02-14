@@ -14,7 +14,7 @@
 ...
 
     // rtp communication signalling 
-    // 기본으로 제공하는 signalling 서버 사용시
+    // 모듈에서 제공하는 signalling 서버 사용시
     // implementation "io.reactivex.rxjava2:rxandroid:version"
     private val rxSignalling: RxSignalling by lazy {
         object : RxSignalling() {
@@ -109,7 +109,7 @@ repositories {
 Application build.gradle
 <code><pre>
 dependencies {
-	implementation 'com.github.astroluj:android_rtc_intercom:1.3.6'
+	implementation 'com.github.astroluj:android_rtc_intercom:1.3.8'
 }
 </pre></code>
 
