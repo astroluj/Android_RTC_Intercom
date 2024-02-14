@@ -32,9 +32,10 @@ abstract class RTCIntercom (private val context: Context, private val fps: Int =
         const val KEY_TYPE = "type"
         const val KEY_OFFER = "offer"
         const val KEY_ANSWER = "answer"
-        const val KEY_OFFER_SDP = "sdp"
-        const val KEY_OFFER_SDP_INDEX = "sdpMLineIndex"
-        const val KEY_OFFER_SDP_MID = "sdpMid"
+        const val KEY_CANDIDATE = "candidate"
+        const val KEY_SDP = "sdp"
+        const val KEY_SDP_INDEX = "sdpMLineIndex"
+        const val KEY_SDP_MID = "sdpMid"
         const val DEFAULT_PORT = 50001
     }
 
@@ -44,7 +45,6 @@ abstract class RTCIntercom (private val context: Context, private val fps: Int =
     // 상대방 아이피 내부망이 아닌 경우 포트포워딩이 되어야 함
     var partnerIP: String = ""
     var partnerPort: Int = DEFAULT_PORT
-    var myPort: Int = DEFAULT_PORT
     /*
      * audio config
      */
@@ -91,14 +91,20 @@ abstract class RTCIntercom (private val context: Context, private val fps: Int =
         object: SessionObserver() {
             override fun onCreateSuccess(sessionDescription: SessionDescription) {
                 super.onCreateSuccess(sessionDescription)
-                // p2p 연결
-                peerConnection?.setLocalDescription(this, sessionDescription)
-
+                // {"type:"offer or answer", "sdp":"!@#$!@#%$", "sdpMLineIndex": "!@#", "sdpMid": int}
                 // 파트너와 주고받을 데이터
-                val packet = JSONObject().put(SessionDescription.Type.ANSWER.canonicalForm(), sessionDescription.description)
-
-                // 파트너에게 전송
-                onPacketSignalling(packet.toString(), partnerIP, partnerPort)
+                try {
+                    val packet = JSONObject()
+                        .put(KEY_SDP, sessionDescription.description)
+                        .put(KEY_TYPE, sessionDescription.type.canonicalForm())
+                    // 로컬 설정
+                    peerConnection?.setLocalDescription(this, sessionDescription)
+                    // 파트너에게 전송
+                    onPacketSignalling(packet.toString(), partnerIP, partnerPort)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    onError(e)
+                }
             }
         }
     }
@@ -106,16 +112,21 @@ abstract class RTCIntercom (private val context: Context, private val fps: Int =
     private val peerObserver by lazy {
         object: PeerObserver() {
             override fun onIceCandidate(iceCandidate: IceCandidate) {
-                val iceCandidatePacket = JSONObject()
-                // 파트너와 주고받을 데이터
-                iceCandidatePacket.put(KEY_OFFER_SDP, iceCandidate.sdp)
-                iceCandidatePacket.put(KEY_OFFER_SDP_INDEX, iceCandidate.sdpMLineIndex)
-                iceCandidatePacket.put(KEY_OFFER_SDP_MID, iceCandidate.sdpMid)
-                iceCandidatePacket.put(KEY_TYPE, SessionDescription.Type.OFFER.canonicalForm())
+                // {"type:"candidate", "candidate":"candidate:!@@$#%$@#", "sdpMLineIndex": "!@#", "sdpMid": int}
+                try {
+                    val packet = JSONObject()
+                    // 파트너와 주고받을 데이터
+                    packet.put(KEY_CANDIDATE, iceCandidate.sdp)
+                    packet.put(KEY_SDP_INDEX, iceCandidate.sdpMLineIndex)
+                    packet.put(KEY_SDP_MID, iceCandidate.sdpMid)
+                    packet.put(KEY_TYPE, KEY_CANDIDATE)
 
-                // 파트너에게 전송
-                val packet = JSONObject().put(SessionDescription.Type.OFFER.canonicalForm(), iceCandidatePacket).toString()
-                onPacketSignalling(packet, partnerIP, partnerPort)
+                    // 파트너에게 전송
+                    onPacketSignalling(packet.toString(), partnerIP, partnerPort)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    onError(e)
+                }
             }
 
             override fun onIceConnectionChange(state: PeerConnection.IceConnectionState) {
@@ -223,26 +234,37 @@ abstract class RTCIntercom (private val context: Context, private val fps: Int =
     fun onSignallingReceive(json: String) {
         try {
             val packet = JSONObject(json)
-
-            if (!packet.isNull(SessionDescription.Type.ANSWER.canonicalForm())) {
-                // 발신자로부터 통신 시작데이터를 받으면 통신 시작
-               if (!isSender) startWebRTC()
-
-                val description = packet.getString(SessionDescription.Type.ANSWER.canonicalForm())
-                peerConnection?.let {
-                    // 발신자면 answer 수신자면 offer
-                    it.setRemoteDescription(this.sessionObserver, SessionDescription((if (this.isSender) SessionDescription.Type.ANSWER else SessionDescription.Type.OFFER), description))
-                    it.createAnswer(this.sessionObserver, MediaConstraints())
+            when(packet.getString(KEY_TYPE)) {
+                KEY_ANSWER -> {
+                    // 수신자로부터 answer를 받으면 remote 등록
+                    peerConnection?.setRemoteDescription(this.sessionObserver, SessionDescription(SessionDescription.Type.ANSWER, packet.getString(KEY_SDP)))
                 }
-            } else if (!packet.isNull(SessionDescription.Type.OFFER.canonicalForm())) {
-                val iceCandidateJson = packet.getJSONObject(SessionDescription.Type.OFFER.canonicalForm())
+                KEY_OFFER -> {
+                    // 발신자로부터 offer를 받으면 Peerconnection 생성
+                    if (!isSender) startWebRTC()
 
-                val sdp = try { iceCandidateJson.getString(KEY_OFFER_SDP) } catch (e: JSONException) { "" }
-                val sdpMLineIndex = try { iceCandidateJson.getInt(KEY_OFFER_SDP_INDEX) } catch (e: JSONException) { 0 }
-                val sdpMid = try{ iceCandidateJson.getString(KEY_OFFER_SDP_MID) } catch (e: JSONException) { "" }
+                    peerConnection?.let {
+                        // 발신자면 answer 수신자면 offer
+                        it.setRemoteDescription(this.sessionObserver, SessionDescription(SessionDescription.Type.OFFER, packet.getString(KEY_SDP)))
+                        it.createAnswer(this.sessionObserver, MediaConstraints())
+                    }
+                }
+                KEY_CANDIDATE -> {
+                    peerConnection?.let {
+                        try {
+                            // {"type:"candidate", "candidate":"candidate:!@@$#%$@#", "sdpMLineIndex": "!@#", "sdpMid": int}
+                            val sdp = packet.getString(KEY_CANDIDATE)
+                            val sdpMLineIndex = try { packet.getInt(KEY_SDP_INDEX) } catch (e: JSONException) { 0 }
+                            val sdpMid = try{ packet.getString(KEY_SDP_MID) } catch (e: JSONException) { "" }
 
-                val iceCandidate = IceCandidate(sdpMid, sdpMLineIndex, sdp)
-                peerConnection?.addIceCandidate(iceCandidate)
+                            val iceCandidate = IceCandidate(sdpMid, sdpMLineIndex, sdp)
+                            it.addIceCandidate(iceCandidate)
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            onError(e)
+                        }
+                    }
+                }
             }
         } catch (e: Exception) {
             e.printStackTrace()
