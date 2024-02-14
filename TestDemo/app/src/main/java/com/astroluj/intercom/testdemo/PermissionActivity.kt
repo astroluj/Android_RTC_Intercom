@@ -34,6 +34,7 @@ class PermissionActivity : AppCompatActivity() {
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == 1) {
             val permissionDenied = grantResults.any { it == PackageManager.PERMISSION_DENIED }
             if (permissionDenied) {
