@@ -14,24 +14,15 @@ import java.util.*
 class PartnerDetectorActivity : AppCompatActivity() {
 
     private val partnerIp by lazy { findViewById<EditText>(R.id.partnerIpEdit) }
-    private val phoneA by lazy { findViewById<Button>(R.id.phoneA) }
-    private val phoneB by lazy { findViewById<Button>(R.id.phoneB) }
+    private val connectBtn by lazy { findViewById<Button>(R.id.connectBtn) }
 
-    private var isInitiator = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_signalling)
 
-        phoneA.setOnClickListener {
-            it.isEnabled = false
-            isInitiator = true
-            done(isInitiator)
-        }
-
-        phoneB.setOnClickListener {
-            it.isEnabled = false
-            done(isInitiator)
+        connectBtn.setOnClickListener {
+            done()
         }
     }
 
@@ -84,11 +75,10 @@ class PartnerDetectorActivity : AppCompatActivity() {
         return checkSelfPermission(permission!!) == PackageManager.PERMISSION_GRANTED
     }
 
-    private fun done(initiator: Boolean) {
+    private fun done() {
         if (partnerIp.text.toString().isNotEmpty()) {
             val intent = Intent(this, RTCActivity::class.java)
             intent.putExtra("partnerIp", partnerIp.text.toString())
-            intent.putExtra("isInitiator", initiator)
             startActivity(intent)
             finish()
         }

@@ -18,7 +18,7 @@ abstract class RxSignalling {
     private val serverTimeOut = 3000
     private val socketTimeOut = 10000
 
-    private val disposables by lazy { CompositeDisposable() }
+    private var disposables: CompositeDisposable? = null
 
     // 시그날링으로 주고 받을 데이터를 받을 서버 생성
     fun startSignalling(myPort: Int) {
@@ -52,7 +52,9 @@ abstract class RxSignalling {
             .observeOn(AndroidSchedulers.mainThread())
             // 구독 결과
             .subscribe(this::onRxReceive, this::onRxError)
-        disposables.add(disposable)
+
+        if (this.disposables == null) this.disposables = CompositeDisposable()
+        disposables?.add(disposable)
     }
 
     fun sendPacket(packet: JSONObject, partnerIP: String, partnerPort: Int) {
@@ -68,12 +70,19 @@ abstract class RxSignalling {
             .subscribeOn(Schedulers.newThread())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({}, this::onRxError)
-        disposables.add(disposable)
+
+        if (this.disposables == null) this.disposables = CompositeDisposable()
+        disposables?.add(disposable)
+    }
+
+    open fun stop() {
+        this.disposables?.clear()
     }
 
     open fun release () {
-        this.disposables.dispose()
-        this.disposables.clear()
+        this.stop()
+        this.disposables?.dispose()
+        this.disposables = null
     }
 
     abstract fun onRxReceive(json: String)

@@ -1,2 +1,2 @@
 configurations.maybeCreate("default")
-artifacts.add("default", file('CameraManager-2.6.5_Release.aar'))
+artifacts.add("default", file('CameraManager-2.9.16_Release.aar'))

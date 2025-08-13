@@ -30,31 +30,21 @@ abstract class RTCIntercom (private val context: Context, private val fps: Int =
 
     companion object {
         const val KEY_TYPE = "type"
-        const val KEY_OFFER = "offer"
-        const val KEY_ANSWER = "answer"
+        val KEY_OFFER = SessionDescription.Type.OFFER.canonicalForm()
+        val KEY_ANSWER = SessionDescription.Type.ANSWER.canonicalForm()
         const val KEY_CANDIDATE = "candidate"
         const val KEY_SDP = "sdp"
         const val KEY_SDP_INDEX = "sdpMLineIndex"
         const val KEY_SDP_MID = "sdpMid"
-        const val DEFAULT_PORT = 50001
+        const val DEFAULT_PORT = 6001
     }
 
     var isRunning = false
         private set
 
     // 상대방 아이피 내부망이 아닌 경우 포트포워딩이 되어야 함
-    var partnerIP: String = ""
-    var partnerPort: Int = DEFAULT_PORT
-    /*
-     * audio config
-     */
-    // 볼륨 최대치 0 ~ 1f
-    var limitVolumeRate = 1f
-    // 스피커 모드 여부
-    var isSpeakerMode: Boolean = false
-    // 오디오 스트림 타입
-    var streamType: Int = AudioManager.STREAM_VOICE_CALL
-
+    private var partnerIP: String = ""
+    private var partnerPort: Int = DEFAULT_PORT
     /*
      * video config
      */
@@ -62,18 +52,16 @@ abstract class RTCIntercom (private val context: Context, private val fps: Int =
     private var localCapture: VideoCapturer? = null
     // 내 화면
     private var localView: SurfaceViewRenderer? = null
+    private var localVideoTrack: VideoTrack? = null
     // 상대방 화면
     private var remoteView: SurfaceViewRenderer? = null
+    private var remoteVideoTrack: VideoTrack? = null
     // 데이터 관련
     private var captureObserver: CapturerObserver? = null
 
     // 연결자
     private var peerConnection: PeerConnection? = null
 
-    // 중복 dispose 막기 위한 플래그
-    private var isRelease = false
-    // 발신자 여부
-    private var isSender: Boolean = false
     // 비디오 통신 사용 여부
     private var isUsedVideo: Boolean = true
     // 오디오 통신 사용 여부
@@ -151,7 +139,11 @@ abstract class RTCIntercom (private val context: Context, private val fps: Int =
 
     /**
      * 연결 시작
-     * @param isSender 발신자 여부 null 또는 false 이면 수신자임
+     * @param partnerIP 파트너 아이피
+     * @param partnerPort 파트너 포트 번호
+     * @param limitVolumeRate 볼륨 최대치 0 ~ 1f
+     * @param isSpeakerMode 스피커 모드 여부
+     * @param streamType 오디오 스트림 타입
      * @param isUsedVideo 영상 통신 사용 여부 (default 사용)
      * @param isUsedAudio 음성 통신 사용 여부 (default 미사용)
      * @param googleStunServer 구글 Stun 서버 사용 여부 (default "")
@@ -161,15 +153,18 @@ abstract class RTCIntercom (private val context: Context, private val fps: Int =
      * @param localView org.webrtc.SurfaceViewRenderer 내 화면
      * @param remoteView org.webrtc.SurfaceViewRenderer 받은 화면
      */
-    fun start(isSender: Boolean = false,
-              isUsedVideo: Boolean = true, isUsedAudio: Boolean = false,
-              googleStunServer: String = "",
-              customTurnServerURL: String = "", customTurnServerID: String = "", customTurnServerPW: String = "",
-              localView: SurfaceViewRenderer? = null,
-              remoteView: SurfaceViewRenderer? = null) {
-        this.isRelease = false
+    fun start(
+        partnerIP: String, partnerPort: Int = DEFAULT_PORT,
+        limitVolumeRate: Float = 1f, isSpeakerMode: Boolean = false, streamType: Int = AudioManager.STREAM_VOICE_CALL,
+        isUsedVideo: Boolean = true, isUsedAudio: Boolean = false,
+        googleStunServer: String = "",
+        customTurnServerURL: String = "", customTurnServerID: String = "", customTurnServerPW: String = "",
+        localView: SurfaceViewRenderer? = null,
+        remoteView: SurfaceViewRenderer? = null
+    ) {
         this.isRunning = true
-        this.isSender = isSender
+        this.partnerIP = partnerIP
+        this.partnerPort = partnerPort
         this.isUsedVideo = isUsedVideo
         this.isUsedAudio = isUsedAudio
         this.googleStunServer = googleStunServer
@@ -189,43 +184,68 @@ abstract class RTCIntercom (private val context: Context, private val fps: Int =
             this.volumeObserver?.init()
         }
 
-        if (this.isSender) {
-            // 발신자 이면 먼저 연결 준비
-            startWebRTC()
-            peerConnection?.createOffer(sessionObserver, MediaConstraints())
-        }
+        // 설정 된 옵션에 맞게 준비
+        startWebRTC()
+    }
+
+    /**
+     * 파트너에게 통신 콜
+     */
+    fun callCreateOffer() {
+        // 파트너에게 통신 하자고 연락
+        peerConnection?.createOffer(sessionObserver, MediaConstraints())
     }
 
     /**
      * 카메라 프레임 전달
      */
     fun onUpdateFrame(nv21: ByteArray, width: Int, height: Int) {
-        val timestampNS = TimeUnit.MILLISECONDS.toNanos(SystemClock.elapsedRealtime())
-        val buffer = NV21Buffer(nv21, width, height, null)
+        if (this.isRunning) {
+            val timestampNS = TimeUnit.MILLISECONDS.toNanos(SystemClock.elapsedRealtime())
+            val buffer = NV21Buffer(nv21, width, height, null)
 
-        val videoFrame = VideoFrame(buffer, 0, timestampNS)
-        this.captureObserver?.onFrameCaptured(videoFrame)
+            val videoFrame = VideoFrame(buffer, 0, timestampNS)
+            this.captureObserver?.onFrameCaptured(videoFrame)
+            videoFrame.release()
+        }
+    }
 
-        videoFrame.release()
+    /**
+     * RTC 통신 정지
+     */
+    fun stop() {
+        isRunning = false
+        this.volumeObserver?.release()
+        this.volumeObserver = null
+        this.localView?.let {
+            this.localVideoTrack?.removeSink(it)
+            it.release()
+        }
+        this.remoteView?.let {
+            this.remoteVideoTrack?.removeSink(it)
+            it.release()
+        }
+        this.localCapture?.stopCapture()
+        this.captureObserver?.onCapturerStopped()
+        this.peerConnection?.dispose()
+        this.peerConnection = null
     }
 
     /**
      * RTC 리소스 해제
      */
     fun release () {
+        this.stop()
         isRunning = false
-        this.volumeObserver?.release()
-        this.volumeObserver = null
         this.localCapture?.dispose()
         this.localCapture = null
-        this.captureObserver?.onCapturerStopped()
-        if (!isRelease) {
+        /*if (!isRelease) {
             // 여러번 PeerConnection.close()함수가 호출 되면 데드락이 걸려서 방지하기 위한 해결책
             isRelease = true
             this.peerConnection?.dispose()
             this.peerConnection = null
         }
-        isRelease = true
+        isRelease = true*/
     }
 
     /**
@@ -241,8 +261,6 @@ abstract class RTCIntercom (private val context: Context, private val fps: Int =
                 }
                 KEY_OFFER -> {
                     // 발신자로부터 offer를 받으면 Peerconnection 생성
-                    if (!isSender) startWebRTC()
-
                     peerConnection?.let {
                         // 발신자면 answer 수신자면 offer
                         it.setRemoteDescription(this.sessionObserver, SessionDescription(SessionDescription.Type.OFFER, packet.getString(KEY_SDP)))
@@ -348,25 +366,24 @@ abstract class RTCIntercom (private val context: Context, private val fps: Int =
                 this.captureObserver = videoSource.capturerObserver
                 it.initialize(helper, this.context, videoSource.capturerObserver)
                 it.startCapture(size.width, size.height, fps)
-                val videoTrack = peerConnectionFactory.createVideoTrack("video", videoSource)
-                localView?.let { sink -> videoTrack.addSink(sink) }
-                this.peerConnection?.addTrack(videoTrack, mediaStreamLabels)
+                this.localVideoTrack = peerConnectionFactory.createVideoTrack("video", videoSource)
+                localView?.let { sink -> this.localVideoTrack?.addSink(sink) }
+                this.peerConnection?.addTrack(this.localVideoTrack, mediaStreamLabels)
             } ?: run {
                 // 따로 실행중인 카메라에서 데이터 받는 경우
                 val videoSource = peerConnectionFactory.createVideoSource(false)
                 this.captureObserver = videoSource.capturerObserver
-                val videoTrack = peerConnectionFactory.createVideoTrack("video", videoSource)
-                localView?.let { sink -> videoTrack.addSink(sink) }
-                this.peerConnection?.addTrack(videoTrack, mediaStreamLabels)
+                this.localVideoTrack = peerConnectionFactory.createVideoTrack("video", videoSource)
+                localView?.let { sink -> this.localVideoTrack?.addSink(sink) }
+                this.peerConnection?.addTrack(this.localVideoTrack, mediaStreamLabels)
             }
 
             // 상대방 화면
-            var remoteVideoTrack: VideoTrack? = null
             peerConnection?.let { peerConn ->
                 for (transceiver in peerConn.transceivers) {
                     val track = transceiver.receiver.track()
                     if (track is VideoTrack) {
-                        remoteVideoTrack = track
+                        this.remoteVideoTrack = track
                         break
                     }
                 }

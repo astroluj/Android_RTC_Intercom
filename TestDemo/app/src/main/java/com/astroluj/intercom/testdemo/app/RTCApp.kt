@@ -20,7 +20,8 @@ class RTCApp: Application() {
 
                 override fun onRxError(error: Throwable) {
                     error.printStackTrace()
-                    this.release()
+                    Log.d ("AAAAAAA", "??Error")
+                    // this.release()
                     rtcIntercom.onError(error)
                 }
             }
@@ -28,19 +29,22 @@ class RTCApp: Application() {
 
         @JvmStatic val rtcIntercom: RTCIntercom by lazy {
             object: RTCIntercom(context) {
+
                 override fun onConnected(partnerIP: String, partnerPort: Int) {
                     Log.d ("AAAAAAAAAA", "connect $partnerIP, $partnerPort")
-                    rxSignalling.release()
+                    //rxSignalling.release()
                 }
 
                 override fun onDisconnected(partnerIP: String, partnerPort: Int) {
                     Log.d ("AAAAAAAAAA", "disconnect $partnerIP, $partnerPort")
+                    // this.release()
+                    // rxSignalling.release()
                 }
 
                 override fun onError(e: Throwable?) {
-                    this.release()
-                    rxSignalling.release()
                     Log.d ("AAAAAAAAAA", "Azzzzz ${e?.message?: "??"}")
+                    // this.release()
+                    // rxSignalling.release()
                 }
 
                 override fun onPacketSignalling(jsonStr: String, partnerIP: String, partnerPort: Int) {
