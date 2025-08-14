@@ -62,8 +62,6 @@ abstract class RTCIntercom (private val context: Context, private val fps: Int =
     // 연결자
     private var peerConnection: PeerConnection? = null
 
-    // 비디오 통신 사용 여부
-    private var isUsedVideo: Boolean = true
     // 오디오 통신 사용 여부
     private var isUsedAudio: Boolean = false
     // 구글 스턴 서버
@@ -144,7 +142,6 @@ abstract class RTCIntercom (private val context: Context, private val fps: Int =
      * @param limitVolumeRate 볼륨 최대치 0 ~ 1f
      * @param isSpeakerMode 스피커 모드 여부
      * @param streamType 오디오 스트림 타입
-     * @param isUsedVideo 영상 통신 사용 여부 (default 사용)
      * @param isUsedAudio 음성 통신 사용 여부 (default 미사용)
      * @param googleStunServer 구글 Stun 서버 사용 여부 (default "")
      * @param customTurnServerURL Turn 서버 URL (default "")
@@ -156,23 +153,22 @@ abstract class RTCIntercom (private val context: Context, private val fps: Int =
     fun start(
         partnerIP: String, partnerPort: Int = DEFAULT_PORT,
         limitVolumeRate: Float = 1f, isSpeakerMode: Boolean = false, streamType: Int = AudioManager.STREAM_VOICE_CALL,
-        isUsedVideo: Boolean = true, isUsedAudio: Boolean = false,
-        googleStunServer: String = "",
-        customTurnServerURL: String = "", customTurnServerID: String = "", customTurnServerPW: String = "",
+        isUsedAudio: Boolean = false,
         localView: SurfaceViewRenderer? = null,
-        remoteView: SurfaceViewRenderer? = null
+        remoteView: SurfaceViewRenderer? = null,
+        googleStunServer: String = "",
+        customTurnServerURL: String = "", customTurnServerID: String = "", customTurnServerPW: String = ""
     ) {
         this.isRunning = true
         this.partnerIP = partnerIP
         this.partnerPort = partnerPort
-        this.isUsedVideo = isUsedVideo
         this.isUsedAudio = isUsedAudio
+        this.localView = localView
+        this.remoteView = remoteView
         this.googleStunServer = googleStunServer
         this.customTurnServerURL = customTurnServerURL
         this.customTurnServerID = customTurnServerID
         this.customTurnServerPW = customTurnServerPW
-        this.localView = localView
-        this.remoteView = remoteView
 
         if (this.isUsedAudio) {
             // 볼륨 변화 이벤트 리스너
@@ -301,7 +297,8 @@ abstract class RTCIntercom (private val context: Context, private val fps: Int =
 
         val eglBase = EglBase.create()
         // camera setting
-        if (this.isUsedVideo) {
+        // 따로 실행중인 카메라가 없는 경우
+        this.localView?.let {
             // 카메라 사용 가능 판단하기
             val camera1Enumerator = Camera1Enumerator(false)
             val cameraNames = camera1Enumerator.deviceNames
@@ -310,14 +307,12 @@ abstract class RTCIntercom (private val context: Context, private val fps: Int =
                 onError(Throwable("Devise is not supported camera."))
                 return
             }
+            this.localCapture = camera1Enumerator.createCapturer(cameraName, null)
+            it.init(eglBase.eglBaseContext, null)
+        }
+        this.remoteView?.init(eglBase.eglBaseContext, null)
 
-            // 따로 실행중인 카메라가 없는 경우
-            this.localView?.let {
-                this.localCapture = camera1Enumerator.createCapturer(cameraName, null)
-                it.init(eglBase.eglBaseContext, null)
-            }
-            this.remoteView?.init(eglBase.eglBaseContext, null)
-
+        if (this.remoteView != null || this.localView != null) {
             // 비디오 설정 적용
             peerConnectionBuilder
                 .setVideoDecoderFactory(DefaultVideoDecoderFactory(eglBase.eglBaseContext))
@@ -357,28 +352,28 @@ abstract class RTCIntercom (private val context: Context, private val fps: Int =
         this.peerConnection = peerConnectionFactory.createPeerConnection(rtcConfig, this.peerObserver)
 
         val mediaStreamLabels = listOf("ARDAMS")
-        if (this.isUsedVideo) {
-            // 카메라 영상 접근
-            this.localCapture?.let {
-                // video setting
-                val helper = SurfaceTextureHelper.create("CaptureThread", eglBase.eglBaseContext)
-                val videoSource = peerConnectionFactory.createVideoSource(it.isScreencast)
-                this.captureObserver = videoSource.capturerObserver
-                it.initialize(helper, this.context, videoSource.capturerObserver)
-                it.startCapture(size.width, size.height, fps)
-                this.localVideoTrack = peerConnectionFactory.createVideoTrack("video", videoSource)
-                localView?.let { sink -> this.localVideoTrack?.addSink(sink) }
-                this.peerConnection?.addTrack(this.localVideoTrack, mediaStreamLabels)
-            } ?: run {
-                // 따로 실행중인 카메라에서 데이터 받는 경우
-                val videoSource = peerConnectionFactory.createVideoSource(false)
-                this.captureObserver = videoSource.capturerObserver
-                this.localVideoTrack = peerConnectionFactory.createVideoTrack("video", videoSource)
-                localView?.let { sink -> this.localVideoTrack?.addSink(sink) }
-                this.peerConnection?.addTrack(this.localVideoTrack, mediaStreamLabels)
-            }
+        // 카메라 영상 접근
+        this.localCapture?.let {
+            // video setting
+            val helper = SurfaceTextureHelper.create("CaptureThread", eglBase.eglBaseContext)
+            val videoSource = peerConnectionFactory.createVideoSource(it.isScreencast)
+            this.captureObserver = videoSource.capturerObserver
+            it.initialize(helper, this.context, videoSource.capturerObserver)
+            it.startCapture(size.width, size.height, fps)
+            this.localVideoTrack = peerConnectionFactory.createVideoTrack("video", videoSource)
+            localView?.let { sink -> this.localVideoTrack?.addSink(sink) }
+            this.peerConnection?.addTrack(this.localVideoTrack, mediaStreamLabels)
+        } ?: run {
+            // 따로 실행중인 카메라에서 데이터 받는 경우
+            val videoSource = peerConnectionFactory.createVideoSource(false)
+            this.captureObserver = videoSource.capturerObserver
+            this.localVideoTrack = peerConnectionFactory.createVideoTrack("video", videoSource)
+            this.localView?.let { sink -> this.localVideoTrack?.addSink(sink) }
+            this.peerConnection?.addTrack(this.localVideoTrack, mediaStreamLabels)
+        }
 
-            // 상대방 화면
+        // 상대방 화면
+        remoteView?.let { sink ->
             peerConnection?.let { peerConn ->
                 for (transceiver in peerConn.transceivers) {
                     val track = transceiver.receiver.track()
@@ -387,17 +382,16 @@ abstract class RTCIntercom (private val context: Context, private val fps: Int =
                         break
                     }
                 }
-                remoteView?.let { sink ->
-                    remoteVideoTrack?.addSink(sink) ?: run {
-                        onError(Throwable("상대방 카메라 화면을 가져올 수 없습니다"))
-                        return
-                    }
+
+                remoteVideoTrack?.addSink(sink) ?: run {
+                    onError(Throwable("상대방 카메라 화면을 가져올 수 없습니다"))
+                    return
                 }
             }
         }
 
         if (this.isUsedAudio) {
-        // 오디오 정보 세팅
+            // 오디오 정보 세팅
             val audioConstraints = MediaConstraints()
             audioConstraints.mandatory.add(MediaConstraints.KeyValuePair("googEchoCancellation", "true"))
             audioConstraints.mandatory.add(MediaConstraints.KeyValuePair("googAutoGainControl", "true"))
