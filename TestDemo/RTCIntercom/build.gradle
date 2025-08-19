@@ -1,2 +1,2 @@
 configurations.maybeCreate("default")
-artifacts.add("default", file('Android_RTC_Intercom-1.4.2_Release.aar'))
+artifacts.add("default", file('Android_RTC_Intercom-1.4.8_Release.aar'))

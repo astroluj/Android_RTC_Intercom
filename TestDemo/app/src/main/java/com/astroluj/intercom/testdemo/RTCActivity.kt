@@ -40,7 +40,8 @@ class RTCActivity: AppCompatActivity() {
         super.onResume()
         this.initCamera()
 
-        rtcIntercom.start(intent.getStringExtra("partnerIp")!!,
+        rtcIntercom.start(
+            isUsedVideo = true,
             isUsedAudio = true,
             remoteView = remoteLayout)
         rxSignalling.startSignalling(RTCIntercom.DEFAULT_PORT)

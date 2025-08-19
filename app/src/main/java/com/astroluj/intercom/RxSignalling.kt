@@ -15,6 +15,11 @@ import java.net.Socket
  * 내부 망을 통해서 통신을 할 때
  */
 abstract class RxSignalling {
+    data class SignalMessage(val ip: String, val port: Int, val message: String)
+
+    var isRunning = false
+        private set
+
     private val serverTimeOut = 3000
     private val socketTimeOut = 10000
 
@@ -22,7 +27,9 @@ abstract class RxSignalling {
 
     // 시그날링으로 주고 받을 데이터를 받을 서버 생성
     fun startSignalling(myPort: Int) {
-        val observable = Observable.create<String> { emitter ->
+        this.isRunning = true
+
+        val observable = Observable.create<SignalMessage> { emitter ->
             // 서버를 생성
             ServerSocket().use { serverSocket ->
                 serverSocket.soTimeout = serverTimeOut
@@ -35,9 +42,11 @@ abstract class RxSignalling {
                         socket.use {
                             // 연결 하려는 소켓 연결
                             it.getInputStream().use { input ->
+                                val remoteAddress = socket.inetAddress.hostAddress ?: "" // 상대방 IP
+                                val remotePort = socket.port                        // 상대방 포트
                                 val text = input.bufferedReader().readText()
                                 // 시그날 발행
-                                emitter.onNext(text)
+                                emitter.onNext(SignalMessage(remoteAddress, remotePort, text))
                             }
                         }
                     } catch (e: Exception) {}
@@ -77,6 +86,7 @@ abstract class RxSignalling {
 
     open fun stop() {
         this.disposables?.clear()
+        this.isRunning = false
     }
 
     open fun release () {
@@ -85,6 +95,6 @@ abstract class RxSignalling {
         this.disposables = null
     }
 
-    abstract fun onRxReceive(json: String)
+    abstract fun onRxReceive(msg: SignalMessage)
     abstract fun onRxError(error: Throwable)
 }

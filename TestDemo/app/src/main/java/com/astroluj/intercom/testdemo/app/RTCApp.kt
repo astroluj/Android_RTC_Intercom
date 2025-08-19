@@ -11,11 +11,13 @@ class RTCApp: Application() {
     companion object {
         lateinit var context: Context
 
+        @JvmField var partnerIP = ""
+
         @JvmStatic val rxSignalling: RxSignalling by lazy {
             object : RxSignalling() {
-                override fun onRxReceive(json: String) {
-                    Log.d ("AAAAAAA", "recv : $json")
-                    rtcIntercom.onSignallingReceive(json)
+                override fun onRxReceive(msg: SignalMessage) {
+                    Log.d ("AAAAAAA", "recv : ${msg.ip}:${msg.port} -> ${msg.message}")
+                    rtcIntercom.onSignallingReceive(msg.message)
                 }
 
                 override fun onRxError(error: Throwable) {
@@ -30,13 +32,13 @@ class RTCApp: Application() {
         @JvmStatic val rtcIntercom: RTCIntercom by lazy {
             object: RTCIntercom(context) {
 
-                override fun onConnected(partnerIP: String, partnerPort: Int) {
-                    Log.d ("AAAAAAAAAA", "connect $partnerIP, $partnerPort")
+                override fun onConnected() {
+                    Log.d ("AAAAAAAAAA", "connect")
                     //rxSignalling.release()
                 }
 
-                override fun onDisconnected(partnerIP: String, partnerPort: Int) {
-                    Log.d ("AAAAAAAAAA", "disconnect $partnerIP, $partnerPort")
+                override fun onDisconnected() {
+                    Log.d ("AAAAAAAAAA", "disconnect")
                     // this.release()
                     // rxSignalling.release()
                 }
@@ -47,9 +49,9 @@ class RTCApp: Application() {
                     // rxSignalling.release()
                 }
 
-                override fun onPacketSignalling(jsonStr: String, partnerIP: String, partnerPort: Int) {
+                override fun onPacketSignalling(jsonStr: String) {
                     Log.d ("AAAAAAA", "send : $jsonStr")
-                    rxSignalling.sendPacket(JSONObject(jsonStr), partnerIP, partnerPort)
+                    rxSignalling.sendPacket(JSONObject(jsonStr), partnerIP, RTCIntercom.DEFAULT_PORT)
                 }
             }
         }

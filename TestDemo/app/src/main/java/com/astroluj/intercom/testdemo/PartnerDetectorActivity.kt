@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
+import com.astroluj.intercom.testdemo.app.RTCApp
 import java.util.*
 
 class PartnerDetectorActivity : AppCompatActivity() {
@@ -79,6 +80,7 @@ class PartnerDetectorActivity : AppCompatActivity() {
         if (partnerIp.text.toString().isNotEmpty()) {
             val intent = Intent(this, RTCActivity::class.java)
             intent.putExtra("partnerIp", partnerIp.text.toString())
+            RTCApp.partnerIP = partnerIp.text.toString()
             startActivity(intent)
             finish()
         }
