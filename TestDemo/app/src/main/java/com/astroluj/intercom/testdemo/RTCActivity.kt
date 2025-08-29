@@ -43,6 +43,8 @@ class RTCActivity: AppCompatActivity() {
         rtcIntercom.start(
             isUsedVideo = true,
             isUsedAudio = true,
+            limitVolumeRate = 1f,
+            isSpeakerMode = true,
             remoteView = remoteLayout)
         rxSignalling.startSignalling(RTCIntercom.DEFAULT_PORT)
     }

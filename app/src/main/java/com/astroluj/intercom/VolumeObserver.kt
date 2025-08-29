@@ -39,9 +39,9 @@ class VolumeObserver (private val context: Context,
         // if (audioEffects == null) audioEffects = RTCUtils.createAudioEffect(audioManager.generateAudioSessionId())
 
         val currentVolume = audioManager.getStreamVolume(streamType)
+        originVolume = currentVolume
         // 처음 최대 볼륨이 제한 볼륨보다 크면 변경
-        if (limitVolume < currentVolume) {
-            originVolume = currentVolume
+        if (limitVolume >= 0) {
             audioManager.setStreamVolume(streamType, limitVolume, 0)
         }
 
@@ -66,8 +66,6 @@ class VolumeObserver (private val context: Context,
     override fun onChange(selfChange: Boolean) {
         // 볼륨 변화 감지하여 최대 크기를 넘으면 강제로 줄이기
         val currentVolume = audioManager.getStreamVolume(streamType)
-        if (limitVolume < currentVolume) {
-            audioManager.setStreamVolume(streamType, limitVolume, 0)
-        }
+        originVolume = currentVolume
     }
 }

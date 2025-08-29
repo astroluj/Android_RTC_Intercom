@@ -2,10 +2,14 @@ package com.astroluj.intercom.testdemo
 
 import android.Manifest
 import android.annotation.TargetApi
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.media.AudioDeviceInfo
+import android.media.AudioManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
@@ -68,6 +72,26 @@ class PartnerDetectorActivity : AppCompatActivity() {
                 )
             }
         }
+
+        val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        audioManager.mode = AudioManager.MODE_IN_COMMUNICATION
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val devices = audioManager.availableCommunicationDevices
+            val targetType = if (true) AudioDeviceInfo.TYPE_BUILTIN_SPEAKER else AudioDeviceInfo.TYPE_BUILTIN_EARPIECE
+
+            for (device in devices) {
+                if (device.type == targetType) {
+                    audioManager.setCommunicationDevice(device)
+                    break
+                }
+            }
+        } else {
+            audioManager.isSpeakerphoneOn = true
+        }
+
+        val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_VOICE_CALL)
+        val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_VOICE_CALL)
+        Log.d ("AAAAAAAA", "current volume $currentVolume, $maxVolume")
     }
 
     // want to Permission granted state

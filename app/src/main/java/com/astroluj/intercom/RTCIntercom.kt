@@ -149,7 +149,7 @@ abstract class RTCIntercom (private val context: Context, private val fps: Int =
         isUsedAudio: Boolean = false,
         localView: SurfaceViewRenderer? = null,
         remoteView: SurfaceViewRenderer? = null,
-        limitVolumeRate: Float = 1f, isSpeakerMode: Boolean = false, streamType: Int = AudioManager.STREAM_VOICE_CALL,
+        limitVolumeRate: Float = -1f, isSpeakerMode: Boolean = false, streamType: Int = AudioManager.STREAM_VOICE_CALL,
         googleStunServer: String = "",
         customTurnServerURL: String = "", customTurnServerID: String = "", customTurnServerPW: String = ""
     ) {
