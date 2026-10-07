@@ -5,10 +5,6 @@ import android.database.ContentObserver
 import android.media.AudioManager
 import android.os.Handler
 import android.provider.Settings
-import org.webrtc.voiceengine.WebRtcAudioEffects
-import org.webrtc.voiceengine.WebRtcAudioManager
-import org.webrtc.voiceengine.WebRtcAudioRecord
-import org.webrtc.voiceengine.WebRtcAudioTrack
 
 /**
  * internal class
@@ -26,7 +22,6 @@ class VolumeObserver (private val context: Context,
     private var originVolume = 0
     private var originMode = AudioManager.MODE_NORMAL
     private var originSpeaker = false
-    private var audioEffects: WebRtcAudioEffects? = null
 
     // 옵저버 등록 이닛
     fun init() {
@@ -53,7 +48,6 @@ class VolumeObserver (private val context: Context,
         // 제한을 두었던 최대 볼륨에서 원래 볼륨으로 되돌리기
         if (originVolume > 0) audioManager.setStreamVolume(streamType, originVolume, 0)
         this.context.contentResolver.unregisterContentObserver(this)
-        this.audioEffects?.release()
 
         audioManager.isSpeakerphoneOn = originSpeaker
         audioManager.mode = originMode

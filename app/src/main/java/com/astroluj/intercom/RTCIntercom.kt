@@ -280,10 +280,6 @@ abstract class RTCIntercom (private val context: Context, private val fps: Int =
         if (isUsedAudio) {
             // 오디오 정보 세팅
             val audioConstraints = MediaConstraints()
-            audioConstraints.mandatory.add(MediaConstraints.KeyValuePair("googEchoCancellation", "true"))
-            audioConstraints.mandatory.add(MediaConstraints.KeyValuePair("googAutoGainControl", "true"))
-            audioConstraints.mandatory.add(MediaConstraints.KeyValuePair("googHighpassFilter", "true"))
-            audioConstraints.mandatory.add(MediaConstraints.KeyValuePair("googNoiseSuppression", "true"))
             val audioSource = peerConnectionFactory.createAudioSource(audioConstraints)
             val audioTrack = peerConnectionFactory.createAudioTrack("audio", audioSource)
             peerConnection?.addTrack(audioTrack, mediaStreamLabels)
